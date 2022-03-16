@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 from matplotlib import widgets
 from projection import Quaternion, project_points
 
+import matplotlib as mpl
+mpl.rcParams['toolbar'] = 'None'
+
 """
 Sticker representation
 ----------------------
@@ -48,7 +51,7 @@ class Cube:
     # define some attribues
     default_plastic_color = 'black'
     default_face_colors = ["w", "#ffcf00",
-                           "#00008f", "#009f0f",
+                           "#009f0f","#00008f",
                            "#ff6f00", "#cf0000",
                            "gray", "none"]
     base_face = np.array([[1, 1, 1],
@@ -253,7 +256,7 @@ class InteractiveCube(plt.Axes):
         self._button1 = False  # true when button 1 is pressed
         self._button2 = False  # true when button 2 is pressed
         self._event_xy = None  # store xy position of mouse event
-        self._shift = False  # shift key pressed
+        self._space = False  # space key pressed
         self._digit_flags = np.zeros(10, dtype=bool)  # digits 0-9 pressed
 
         self._current_rot = self._start_rot  #current rotation state
@@ -280,7 +283,7 @@ class InteractiveCube(plt.Axes):
         self.figure.text(0.05, 0.05,
                          "Mouse/arrow keys adjust view\n"
                          "U/D/L/R/B/F keys turn faces\n"
-                         "(hold shift for counter-clockwise)",
+                         "(hold space for counter-clockwise)",
                          size=10)
 
     def _initialize_widgets(self):
@@ -343,6 +346,8 @@ class InteractiveCube(plt.Axes):
                 self.cube.rotate_face(face, turns * 1. / steps,
                                       layer=layer)
                 self._draw_cube()
+                # Debug
+                plt.pause(0.005)
 
     def _reset_view(self, *args):
         self.set_xlim(self._start_xlim)
@@ -358,19 +363,19 @@ class InteractiveCube(plt.Axes):
 
     def _key_press(self, event):
         """Handler for key press events"""
-        if event.key == 'shift':
-            self._shift = True
+        if event.key == ' ':
+            self._space = True
         elif event.key.isdigit():
             self._digit_flags[int(event.key)] = 1
         elif event.key == 'right':
-            if self._shift:
+            if self._space:
                 ax_LR = self._ax_LR_alt
             else:
                 ax_LR = self._ax_LR
             self.rotate(Quaternion.from_v_theta(ax_LR,
                                                 5 * self._step_LR))
         elif event.key == 'left':
-            if self._shift:
+            if self._space:
                 ax_LR = self._ax_LR_alt
             else:
                 ax_LR = self._ax_LR
@@ -383,7 +388,7 @@ class InteractiveCube(plt.Axes):
             self.rotate(Quaternion.from_v_theta(self._ax_UD,
                                                 -5 * self._step_UD))
         elif event.key.upper() in 'LRUDBF':
-            if self._shift:
+            if self._space:
                 direction = -1
             else:
                 direction = 1
@@ -398,8 +403,8 @@ class InteractiveCube(plt.Axes):
 
     def _key_release(self, event):
         """Handler for key release event"""
-        if event.key == 'shift':
-            self._shift = False
+        if event.key == ' ':
+            self._space = False
         elif event.key.isdigit():
             self._digit_flags[int(event.key)] = 0
 
@@ -427,7 +432,7 @@ class InteractiveCube(plt.Axes):
             self._event_xy = (event.x, event.y)
 
             if self._button1:
-                if self._shift:
+                if self._space:
                     ax_LR = self._ax_LR_alt
                 else:
                     ax_LR = self._ax_LR
@@ -466,7 +471,7 @@ if __name__ == '__main__':
     #c.rotate_face('D', -1)
     #c.rotate_face('R', -1)
     #c.rotate_face('U')
-
+    
     c.draw_interactive()
-
+    plt.get_current_fig_manager().set_window_title('Magic Cube')
     plt.show()
